@@ -3,10 +3,13 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+import matplotlib.pyplot as plt
 import pickle
 
 df = pd.read_csv("../data/Data_supply.csv")
 
+df["shipping_delay"] = df["Days.for.shipping.real"] - df["Days.for.shipping.scheduled"]
 drop_cols = [
     "X", "X.1", "X.2", "Unnamed: 62",
     "Customer.Email", "Customer.Password",
@@ -19,11 +22,17 @@ df = df.drop(columns=drop_cols, errors="ignore")
 features = [
     "Type",
     "Sales",
-    "Order.Item.Quantity", 
-    "Order.Item.Product.Price", 
-    "Shipping.Mode", 
-    "Shipping_Time", 
-    "Order.Region", 
+    "Order.Item.Quantity",
+    "Order.Item.Product.Price",
+    "Order.Item.Discount",
+    "Order.Item.Discount.Rate",
+    "Benefit.per.order",
+    "Order.Profit.Per.Order",
+    "Days.for.shipping.real",
+    "Days.for.shipping.scheduled",
+    "shipping_delay",
+    "Shipping.Mode",
+    "Order.Region",
     "Market"
 ]
 
@@ -35,6 +44,7 @@ df["Late_delivery_risk"] = df["Late_delivery_risk"].astype(int)
 
 X = df[features]
 y = df["Late_delivery_risk"]
+X = X.fillna(0)
 
 le = LabelEncoder()
 
@@ -45,11 +55,26 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 print(X.dtypes)
 
-model = RandomForestClassifier()
+model = RandomForestClassifier(
+    n_estimators=300,
+    max_depth=15,
+    min_samples_split=5,
+    class_weight="balanced",
+    random_state=42
+)
 model.fit(X_train, y_train)
 
 pred = model.predict(X_test)
-
+print(classification_report(y_test, pred))
 print("Accuracy: ", accuracy_score(y_test, pred))
 
 pickle.dump(model, open("../model/model.pkl", "wb"))
+
+importances = model.feature_importances_
+
+plt.barh(X.columns, importances)
+plt.title("Feature Importance")
+plt.xlabel("Importance")
+plt.tight_layout()
+plt.savefig("../reports/feature_importance_v2.png")
+plt.show()
