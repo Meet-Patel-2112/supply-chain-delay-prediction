@@ -49,8 +49,9 @@ Improved accuracy: **~0.97**
 
 Feature importance analysis was performed to understand which variables most influence delivery delay predictions.
 
-See:
-`reports/feature_importance_v2.png`
+See the feature importance plot below:
+
+![Feature Importance](reports/feature_importance_v2.png)
 
 ## Tech Stack
 
