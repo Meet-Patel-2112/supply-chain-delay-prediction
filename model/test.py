@@ -2,8 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score, classification_report
 import matplotlib.pyplot as plt
 import pickle
 
@@ -23,10 +22,10 @@ market_delay_rate = df.groupby("Market")["Late_delivery_risk"].mean()
 df["market_delay_rate"] = df["Market"].map(market_delay_rate)
 
 drop_cols = [
-    "X", "X.1", "X.2", "Unnamed: 62",
-    "Customer.Email", "Customer.Password",
-    "Product.Image", "Product.Description",
-    "Customer.Id", "Product.Id", "Product.Card.Id"
+    "X","X.1","X.2","Unnamed: 62",
+    "Customer.Email","Customer.Password",
+    "Product.Image","Product.Description",
+    "Customer.Id","Product.Id","Product.Card.Id"
 ]
 
 df = df.drop(columns=drop_cols, errors="ignore")
@@ -41,27 +40,29 @@ features = [
     "Days.for.shipping.scheduled",
     "shipping_mode_delay_rate",
     "region_delay_rate",
-    "market_delay_rate",
+    "market_delay_rate"
 ]
 
 target = "Late_delivery_risk"
 
-df = df.dropna(subset=["Late_delivery_risk"])
-
-df["Late_delivery_risk"] = df["Late_delivery_risk"].astype(int)
+df = df.dropna(subset=[target])
+df[target] = df[target].astype(int)
 
 X = df[features]
-y = df["Late_delivery_risk"]
+y = df[target]
 X = X.fillna(0)
 
-le = LabelEncoder()
+# store encoders
+encoders = {}
 
-for col in X.select_dtypes(include=["object", "string"]).columns:
+for col in X.select_dtypes(include=["object","string"]).columns:
+    le = LabelEncoder()
     X[col] = le.fit_transform(X[col])
-        
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    encoders[col] = le
 
-#print(X.dtypes)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 model = RandomForestClassifier(
     n_estimators=300,
@@ -69,15 +70,19 @@ model = RandomForestClassifier(
     min_samples_split=10,
     random_state=42
 )
+
 model.fit(X_train, y_train)
 
 train_pred = model.predict(X_train)
 test_pred = model.predict(X_test)
-print(classification_report(y_test, test_pred))
-print("Training Accuracy: ", accuracy_score(y_train, train_pred))
-print("Testing Accuracy: ", accuracy_score(y_test, test_pred))
 
-pickle.dump(model, open("../model/model.pkl", "wb"))
+print(classification_report(y_test, test_pred))
+print("Training Accuracy:", accuracy_score(y_train, train_pred))
+print("Testing Accuracy:", accuracy_score(y_test, test_pred))
+
+# save model + encoders
+pickle.dump(model, open("../model/model.pkl","wb"))
+pickle.dump(encoders, open("../model/encoders.pkl","wb"))
 
 importances = model.feature_importances_
 
@@ -86,4 +91,3 @@ plt.title("Feature Importance")
 plt.xlabel("Importance")
 plt.tight_layout()
 plt.savefig("../reports/feature_importance_v3.png")
-plt.show()

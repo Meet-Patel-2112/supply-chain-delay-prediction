@@ -1,62 +1,207 @@
 # Supply Chain Delay Prediction
 
-Machine Learning project to predict delivery delays using supply chain data.
+Machine Learning project that predicts whether an order will experience **late delivery** using supply chain transaction data.
 
-## Dataset
+The project demonstrates a full machine learning workflow including:
 
-Supply chain dataset containing order information, shipping data, and delivery risk.
+* data preprocessing
+* feature engineering
+* model training and evaluation
+* feature importance analysis
+* deployment via a Flask web application
 
-## Features Used
+---
 
-* Type
-* Sales
-* Order Item Quantity
-* Product Price
-* Order Item Discount
-* Order Item Discount Rate
-* Benefit per Order
-* Order Profit Per Order
-* Days for Shipping (Real)
-* Days for Shipment (Scheduled)
-* Shipping Mode
-* Order Region
-* Market
+# Dataset
 
-## Feature Engineering
+The dataset contains supply chain sales records with information about:
 
-An additional feature was introduced to improve prediction performance:
+* product sales
+* shipping modes
+* regions and markets
+* order quantities
+* shipment scheduling
+* delivery outcomes
+
+Target variable:
 
 ```
-shipping_delay = Days.for.shipping.real - Days.for.shipment.scheduled
+Late_delivery_risk
 ```
 
-This feature captures the difference between actual and scheduled shipping time and significantly improves model performance.
+Values:
 
-## Model
+* **0** → On-time delivery
+* **1** → Late delivery
 
-Random Forest Classifier
+---
 
-Model improvements include:
+# Feature Engineering
 
-* increased number of trees
-* tuned model depth
-* balanced class weights
-* additional predictive features
+Several engineered features were introduced to improve predictive performance.
 
-Improved accuracy: **~0.97**
+### 1. Quantity per Day
 
-## Feature Importance
+```
+quantity_per_day = Order.Item.Quantity - Days.for.shipping.scheduled
+```
 
-Feature importance analysis was performed to understand which variables most influence delivery delay predictions.
+Captures how shipment scheduling interacts with order volume.
 
-See the feature importance plot below:
+---
 
-![Feature Importance](reports/feature_importance_v2.png)
+### 2. Profit Margin
 
-## Tech Stack
+```
+profit_margin = Order.Profit.Per.Order / Sales
+```
+
+Measures profitability of an order relative to total sales.
+
+---
+
+### 3. Discount Amount
+
+```
+discount_amount = Sales × Order.Item.Discount.Rate
+```
+
+Represents the monetary value of applied discounts.
+
+---
+
+### 4. Delay Rate by Shipping Mode
+
+Historical delay probability for each shipping mode.
+
+```
+shipping_mode_delay_rate
+```
+
+---
+
+### 5. Delay Rate by Region
+
+Average delay probability grouped by geographic region.
+
+```
+region_delay_rate
+```
+
+---
+
+### 6. Delay Rate by Market
+
+Average delay probability grouped by market.
+
+```
+market_delay_rate
+```
+
+These engineered features capture **behavioral patterns in the supply chain** that influence delivery delays.
+
+---
+
+# Model
+
+Algorithm used:
+
+```
+RandomForestClassifier
+```
+
+Key configuration:
+
+* **300 trees**
+* **max_depth = 10**
+* **min_samples_split = 10**
+* random_state = 42
+
+---
+
+# Model Evaluation
+
+The model is evaluated using:
+
+* training accuracy
+* testing accuracy
+* classification report (precision, recall, F1-score)
+
+Example output:
+
+```
+Training Accuracy  ~0.73
+Testing Accuracy   ~0.70
+```
+
+---
+
+# Feature Importance
+
+Feature importance analysis was performed to identify which variables contribute most to delivery delay prediction.
+
+![Feature Importance](reports/feature_importance_v3.png)
+
+---
+
+# Web Application
+
+The project includes a **Flask-based web application** that allows users to interact with the model through a simple interface.
+
+Users can input:
+
+* transaction type
+* sales amount
+* order quantity
+* scheduled shipping days
+* shipping mode
+* order region
+* market
+
+The model returns:
+
+```
+Late Delivery Expected
+or
+On Time Delivery
+```
+
+---
+
+# Project Structure
+
+```
+supply-chain-delay-prediction
+│
+├── data
+│   └── Data_supply.csv
+│
+├── model
+│   ├── train_model.py
+│   └── model.pkl
+│
+├── templates
+│   └── index.html
+│
+├── notebooks
+│   └── eda.ipynb
+│
+├── reports
+│   └── feature_importance_v3.png
+│
+├── app.py
+├── requirements.txt
+└── README.md
+```
+
+---
+
+# Tech Stack
 
 * Python
 * Pandas
 * Scikit-learn
 * Matplotlib
 * Flask
+* HTML / JavaScript
+* Git
