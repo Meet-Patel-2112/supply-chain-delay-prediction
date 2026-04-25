@@ -1,0 +1,100 @@
+Test Sample 1
+{
+  "Type": "DEBIT",
+  "Sales": 210.5,
+  "Order.Item.Quantity": 2,
+  "Days.for.shipping.scheduled": 3,
+  "Shipping.Mode": "Standard Class",
+  "Order.Region": "Western Europe",
+  "Market": "Europe"
+}
+Test Sample 2
+{
+  "Type": "TRANSFER",
+  "Sales": 145.2,
+  "Order.Item.Quantity": 1,
+  "Days.for.shipping.scheduled": 4,
+  "Shipping.Mode": "Second Class",
+  "Order.Region": "Southeast Asia",
+  "Market": "Asia Pacific"
+}
+Test Sample 3
+{
+  "Type": "CASH",
+  "Sales": 89.9,
+  "Order.Item.Quantity": 3,
+  "Days.for.shipping.scheduled": 2,
+  "Shipping.Mode": "First Class",
+  "Order.Region": "Central America",
+  "Market": "LATAM"
+}
+Test Sample 4
+{
+  "Type": "PAYMENT",
+  "Sales": 320.75,
+  "Order.Item.Quantity": 2,
+  "Days.for.shipping.scheduled": 1,
+  "Shipping.Mode": "Same Day",
+  "Order.Region": "Eastern Asia",
+  "Market": "Asia Pacific"
+}
+Test Sample 5
+{
+  "Type": "DEBIT",
+  "Sales": 560.4,
+  "Order.Item.Quantity": 4,
+  "Days.for.shipping.scheduled": 3,
+  "Shipping.Mode": "Standard Class",
+  "Order.Region": "Southern Europe",
+  "Market": "Europe"
+}
+Test Sample 6
+{
+  "Type": "TRANSFER",
+  "Sales": 75.5,
+  "Order.Item.Quantity": 1,
+  "Days.for.shipping.scheduled": 4,
+  "Shipping.Mode": "Second Class",
+  "Order.Region": "Northern Europe",
+  "Market": "Europe"
+}
+Test Sample 7
+{
+  "Type": "CASH",
+  "Sales": 980.2,
+  "Order.Item.Quantity": 5,
+  "Days.for.shipping.scheduled": 2,
+  "Shipping.Mode": "Standard Class",
+  "Order.Region": "South America",
+  "Market": "LATAM"
+}
+Test Sample 8
+{
+  "Type": "DEBIT",
+  "Sales": 160.0,
+  "Order.Item.Quantity": 2,
+  "Days.for.shipping.scheduled": 4,
+  "Shipping.Mode": "First Class",
+  "Order.Region": "Western Africa",
+  "Market": "Africa"
+}
+Test Sample 9
+{
+  "Type": "PAYMENT",
+  "Sales": 410.3,
+  "Order.Item.Quantity": 3,
+  "Days.for.shipping.scheduled": 1,
+  "Shipping.Mode": "Same Day",
+  "Order.Region": "Eastern Europe",
+  "Market": "Europe"
+}
+Test Sample 10
+{
+  "Type": "TRANSFER",
+  "Sales": 230.7,
+  "Order.Item.Quantity": 2,
+  "Days.for.shipping.scheduled": 3,
+  "Shipping.Mode": "Standard Class",
+  "Order.Region": "Western Asia",
+  "Market": "Asia Pacific"
+}

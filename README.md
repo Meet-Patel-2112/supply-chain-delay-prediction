@@ -1,184 +1,26 @@
-# Supply Chain Delay Prediction
+Supply Chain Delay Prediction
+Overview
 
-Machine Learning project that predicts whether an order will experience **late delivery** using supply chain transaction data.
+This project predicts whether an order in a supply chain will be delivered on time or late using machine learning.
 
-The project demonstrates a full machine learning workflow including:
+It combines data analysis, feature engineering, model comparison, and a Flask web application to provide real-time predictions.
 
-* data preprocessing
-* feature engineering
-* model training and evaluation
-* feature importance analysis
-* deployment via a Flask web application
+The system trains multiple models, selects the best performing one, and exposes it through a web interface.
 
----
-
-# Dataset
-
-The dataset contains supply chain sales records with information about:
-
-* product sales
-* shipping modes
-* regions and markets
-* order quantities
-* shipment scheduling
-* delivery outcomes
-
-Target variable:
-
-```
-Late_delivery_risk
-```
-
-Values:
-
-* **0** → On-time delivery
-* **1** → Late delivery
-
----
-
-# Feature Engineering
-
-Several engineered features were introduced to improve predictive performance.
-
-### 1. Quantity per Day
-
-```
-quantity_per_day = Order.Item.Quantity - Days.for.shipping.scheduled
-```
-
-Captures how shipment scheduling interacts with order volume.
-
----
-
-### 2. Profit Margin
-
-```
-profit_margin = Order.Profit.Per.Order / Sales
-```
-
-Measures profitability of an order relative to total sales.
-
----
-
-### 3. Discount Amount
-
-```
-discount_amount = Sales × Order.Item.Discount.Rate
-```
-
-Represents the monetary value of applied discounts.
-
----
-
-### 4. Delay Rate by Shipping Mode
-
-Historical delay probability for each shipping mode.
-
-```
-shipping_mode_delay_rate
-```
-
----
-
-### 5. Delay Rate by Region
-
-Average delay probability grouped by geographic region.
-
-```
-region_delay_rate
-```
-
----
-
-### 6. Delay Rate by Market
-
-Average delay probability grouped by market.
-
-```
-market_delay_rate
-```
-
-These engineered features capture **behavioral patterns in the supply chain** that influence delivery delays.
-
----
-
-# Model
-
-Algorithm used:
-
-```
-RandomForestClassifier
-```
-
-Key configuration:
-
-* **300 trees**
-* **max_depth = 10**
-* **min_samples_split = 10**
-* random_state = 42
-
----
-
-# Model Evaluation
-
-The model is evaluated using:
-
-* training accuracy
-* testing accuracy
-* classification report (precision, recall, F1-score)
-
-Example output:
-
-```
-Training Accuracy  ~0.73
-Testing Accuracy   ~0.70
-```
-
----
-
-# Feature Importance
-
-Feature importance analysis was performed to identify which variables contribute most to delivery delay prediction.
-
-![Feature Importance](reports/feature_importance_v3.png)
-
----
-
-# Web Application
-
-The project includes a **Flask-based web application** that allows users to interact with the model through a simple interface.
-
-Users can input:
-
-* transaction type
-* sales amount
-* order quantity
-* scheduled shipping days
-* shipping mode
-* order region
-* market
-
-The model returns:
-
-```
-Late Delivery Expected
-or
-On Time Delivery
-```
-
----
-
-# Project Structure
-
-```
+Project Structure
 supply-chain-delay-prediction
+│
+├── app.py
+├── requirements.txt
+├── README.md
 │
 ├── data
 │   └── Data_supply.csv
 │
 ├── model
 │   ├── train_model.py
-│   └── model.pkl
+│   ├── model.pkl
+│   ├── encoders.pkl
 │
 ├── templates
 │   └── index.html
@@ -186,22 +28,107 @@ supply-chain-delay-prediction
 ├── notebooks
 │   └── eda.ipynb
 │
-├── reports
-│   └── feature_importance_v3.png
-│
-├── app.py
-├── requirements.txt
-└── README.md
-```
+└── reports
+    └── feature importance visualizations
+Dataset
 
----
+The dataset contains historical supply chain order information.
 
-# Tech Stack
+Key attributes include:
 
-* Python
-* Pandas
-* Scikit-learn
-* Matplotlib
-* Flask
-* HTML / JavaScript
-* Git
+Order Type
+Sales
+Quantity
+Shipping Mode
+Order Region
+Market
+Scheduled Shipping Days
+
+Target variable:
+
+Late_delivery_risk
+0 → On-time delivery
+1 → Late delivery
+Feature Engineering
+
+Additional features are generated to improve prediction performance.
+
+Quantity per day
+Profit margin
+Discount amount
+Shipping mode delay rate
+Region delay rate
+Market delay rate
+
+These features capture operational patterns that influence delivery delays.
+
+Machine Learning Models
+
+The training pipeline evaluates multiple models:
+
+Random Forest
+Logistic Regression
+XGBoost
+LightGBM
+CatBoost
+
+Each model is evaluated using:
+
+Accuracy
+Precision
+Recall
+F1 Score
+ROC-AUC
+
+The best model is automatically selected and saved.
+
+Training the Model
+
+Run:
+
+python model/train_model.py
+
+This will:
+
+Train multiple classifiers
+Evaluate their performance
+Save comparison metrics
+Store the best model as model.pkl
+Running the Application
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Run the Flask server:
+
+python app.py
+
+Open:
+
+http://localhost:5000
+API Endpoint
+Predict Delivery Delay
+
+POST /predict
+
+Example request:
+
+{
+  "Type": "Consumer",
+  "Sales": 250,
+  "Order.Item.Quantity": 5,
+  "Days.for.shipping.scheduled": 3,
+  "Shipping.Mode": "Standard Class",
+  "Order.Region": "West",
+  "Market": "US"
+}
+
+Response:
+
+{
+  "prediction": "Late Delivery Expected"
+}
+Results
+
+The model learns patterns in historical supply chain data to predict delivery risks. Feature engineering and ensemble models significantly improve prediction accuracy.

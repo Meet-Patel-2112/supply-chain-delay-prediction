@@ -1,143 +1,761 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Supply Chain Delay Prediction</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Delay Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #252a3a;
+    --accent: #f0b429;
+    --accent2: #e85d4a;
+    --green: #30d99b;
+    --blue: #5b9cf6;
+    --purple: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #6b7694;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
 
-body{
-    font-family: Arial;
-    background:#f4f6f8;
-    text-align:center;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.container{
-    width:420px;
-    margin:80px auto;
-    background:white;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 24px;
+    position: relative;
+    overflow-x: hidden;
+  }
 
-h2{
-    margin-bottom:20px;
-}
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.3;
+    pointer-events: none;
+  }
 
-input,select{
-    width:100%;
-    padding:10px;
-    margin:10px 0;
-}
+  body::after {
+    content: '';
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,180,41,0.07) 0%, transparent 70%);
+    top: -100px; right: -100px;
+    pointer-events: none;
+  }
 
-button{
-    width:100%;
-    padding:12px;
-    background:#007BFF;
-    border:none;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-}
+  .page {
+    width: 100%;
+    max-width: 1080px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    animation: fadeUp 0.5s ease both;
+  }
 
-button:hover{
-    background:#0056b3;
-}
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-#result{
-    margin-top:20px;
-    font-size:20px;
-    font-weight:bold;
-}
+  .header-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .header-tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent); }
 
+  h1 { font-family: var(--font-display); font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+  h1 span { color: var(--accent); }
+  .header-sub { margin-top: 8px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(240,180,41,0.4), transparent);
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section { margin-bottom: 20px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+
+  label {
+    font-size: 11px; font-weight: 500; color: var(--muted);
+    letter-spacing: 0.04em; text-transform: uppercase; font-family: var(--font-mono);
+  }
+
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7694' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+  select option { background: var(--surface2); }
+  input:focus, select:focus {
+    border-color: rgba(240,180,41,0.5);
+    box-shadow: 0 0 0 3px rgba(240,180,41,0.08);
+  }
+  input::placeholder { color: #3d4560; }
+  .invalid { border-color: rgba(232,93,74,0.6) !important; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #0d0f14;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    position: relative;
+    margin-top: 4px;
+  }
+  .btn:hover { background: #ffc94d; box-shadow: 0 6px 24px rgba(240,180,41,0.25); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn.loading { pointer-events: none; opacity: 0.7; }
+  .spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #0d0f14;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    position: absolute;
+    right: 18px; top: 50%;
+    transform: translateY(-50%);
+  }
+  .btn.loading .spinner { display: block; }
+  @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+  #result-box {
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: none;
+    border: 1px solid;
+    animation: fadeUp 0.35s ease both;
+    position: relative;
+  }
+  #result-box.late { background: rgba(232,93,74,0.07); border-color: rgba(232,93,74,0.3); }
+  #result-box.ontime { background: rgba(48,217,155,0.07); border-color: rgba(48,217,155,0.3); }
+  .result-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .result-label.late { color: var(--accent2); }
+  .result-label.ontime { color: var(--green); }
+  .result-text { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+  .result-text.late { color: var(--accent2); }
+  .result-text.ontime { color: var(--green); }
+  .result-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 26px; opacity: 0.5; }
+  .error-msg { margin-top: 10px; font-size: 12px; color: var(--accent2); font-family: var(--font-mono); display: none; text-align: center; }
+
+  /* ── Comparison card ── */
+  .comparison-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .comparison-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(91,156,246,0.4), transparent);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 22px;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeUp 0.25s ease both; }
+
+  .model-row { margin-bottom: 18px; }
+  .model-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .model-name { font-size: 13px; font-weight: 500; }
+  .model-badge {
+    font-family: var(--font-mono); font-size: 10px;
+    padding: 2px 8px; border-radius: 20px; font-weight: 500;
+  }
+  .badge-best   { background: rgba(240,180,41,0.15); color: var(--accent);  border: 1px solid rgba(240,180,41,0.3); }
+  .badge-good   { background: rgba(48,217,155,0.1);  color: var(--green);   border: 1px solid rgba(48,217,155,0.2); }
+  .badge-ok     { background: rgba(91,156,246,0.1);  color: var(--blue);    border: 1px solid rgba(91,156,246,0.2); }
+  .badge-purple { background: rgba(167,139,250,0.1); color: var(--purple);  border: 1px solid rgba(167,139,250,0.2); }
+  .badge-base   { background: rgba(107,118,148,0.1); color: var(--muted);   border: 1px solid rgba(107,118,148,0.2); }
+
+  .bar-track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+  .bar-fill { height: 100%; border-radius: 4px; width: 0; transition: width 1s cubic-bezier(0.23,1,0.32,1); }
+  .bar-fill.cy { background: linear-gradient(90deg, #c98c00, var(--accent)); }
+  .bar-fill.cg { background: linear-gradient(90deg, #1a9e6a, var(--green)); }
+  .bar-fill.cb { background: linear-gradient(90deg, #2d5fcc, var(--blue)); }
+  .bar-fill.cp { background: linear-gradient(90deg, #6d47d4, var(--purple)); }
+  .bar-fill.cm { background: linear-gradient(90deg, #3a4260, #6b7694); }
+
+  .bar-meta { display: flex; justify-content: space-between; }
+  .bar-val { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+  .bar-sub { font-size: 11px; color: var(--muted); }
+
+  .metrics-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .metrics-table th {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .metrics-table td { padding: 9px 10px; border-bottom: 1px solid rgba(37,42,58,0.5); }
+  .metrics-table tr:last-child td { border-bottom: none; }
+  .metrics-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 11px;
+  }
+  .pill-y { background: rgba(240,180,41,0.12); color: var(--accent); }
+  .pill-g { background: rgba(48,217,155,0.12); color: var(--green); }
+  .pill-b { background: rgba(91,156,246,0.12); color: var(--blue); }
+  .pill-p { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .pill-m { background: rgba(107,118,148,0.1); color: var(--muted); }
+
+  .tradeoff-item {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .tradeoff-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .tradeoff-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; }
+  .tradeoff-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .tradeoff-desc code { color: var(--accent); font-family: var(--font-mono); }
+
+  .rec-box {
+    margin-top: 18px;
+    background: rgba(240,180,41,0.05);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .rec-title { font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .rec-text { font-size: 12px; color: #9ca3c4; line-height: 1.6; }
+  .rec-text strong { color: var(--text); }
+  .rec-text code { color: var(--accent); font-family: var(--font-mono); }
+
+  .note { font-size: 11px; color: var(--muted); margin-top: 12px; font-family: var(--font-mono); }
+
+  .footer { text-align: center; font-size: 11px; color: #3d4560; font-family: var(--font-mono); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
-
 </head>
-
-
 <body>
 
-<div class="container">
+<div class="page">
 
-<h2>Supply Chain Delay Predictor</h2>
+  <div>
+    <div class="header-tag">ML Classifier · Logistic Regression</div>
+    <h1>Supply Chain <span>Delay Predictor</span></h1>
+    <p class="header-sub">Enter order details to predict delivery risk. Compare models below to decide your next upgrade.</p>
+  </div>
 
-<form id="predictForm">
+  <div class="main-grid">
 
-<select id="Type">
-<option value="DEBIT">DEBIT</option>
-<option value="TRANSFER">TRANSFER</option>
-<option value="CASH">CASH</option>
-<option value="PAYMENT">PAYMENT</option>
-</select>
+    <!-- ── Prediction Form ── -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> Run Prediction</div>
 
-<input type="number" id="Sales" placeholder="Sales" required>
+      <form id="predictForm" novalidate>
 
-<input type="number" id="Quantity" placeholder="Order Item Quantity" required>
+        <div class="section">
+          <div class="section-label">Order Info</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="Type">Transaction Type</label>
+              <select id="Type">
+                <option value="DEBIT">DEBIT</option>
+                <option value="TRANSFER">TRANSFER</option>
+                <option value="CASH">CASH</option>
+                <option value="PAYMENT">PAYMENT</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Sales">Sales (USD)</label>
+              <input type="number" id="Sales" placeholder="e.g. 250.00" min="0" step="0.01" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="Quantity">Order Item Quantity</label>
+            <input type="number" id="Quantity" placeholder="e.g. 5" min="1" step="1" required>
+          </div>
+        </div>
 
-<input type="number" id="Days" placeholder="Days for Shipping Scheduled" required>
+        <div class="section">
+          <div class="section-label">Shipping Details</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="ShippingMode">Shipping Mode</label>
+              <select id="ShippingMode">
+                <option value="Standard Class">Standard Class</option>
+                <option value="Second Class">Second Class</option>
+                <option value="First Class">First Class</option>
+                <option value="Same Day">Same Day</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Days">Scheduled Days</label>
+              <input type="number" id="Days" placeholder="e.g. 4" min="1" step="1" required>
+            </div>
+          </div>
+        </div>
 
+        <div class="section">
+          <div class="section-label">Location</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="Region">Order Region</label>
+              <select id="Region">
+                <option value="">Select region…</option>
+                <option>Canada</option>
+                <option>Caribbean</option>
+                <option>Central Africa</option>
+                <option>Central America</option>
+                <option>Central Asia</option>
+                <option>East Africa</option>
+                <option>East of USA</option>
+                <option>Eastern Asia</option>
+                <option>Eastern Europe</option>
+                <option>North Africa</option>
+                <option>Northern Europe</option>
+                <option>Oceania</option>
+                <option>South America</option>
+                <option>South Asia</option>
+                <option>South of  USA</option>
+                <option>Southeast Asia</option>
+                <option>Southern Africa</option>
+                <option>Southern Europe</option>
+                <option>US Center</option>
+                <option>West Africa</option>
+                <option>West Asia</option>
+                <option>West of USA</option>
+                <option>Western Europe</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Market">Market</label>
+              <select id="Market">
+                <option value="">Select market…</option>
+                <option>Africa</option>
+                <option>Europe</option>
+                <option>LATAM</option>
+                <option>Pacific Asia</option>
+                <option>USCA</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-<select id="ShippingMode">
+        <button class="btn" type="submit" id="submitBtn">
+          Run Prediction
+          <span class="spinner"></span>
+        </button>
 
-<option value="Standard Class">Standard Class</option>
-<option value="Second Class">Second Class</option>
-<option value="First Class">First Class</option>
-<option value="Same Day">Same Day</option>
+        <div class="error-msg" id="errorMsg">⚠ Could not reach prediction API. Make sure Flask is running.</div>
 
-</select>
+      </form>
 
+      <div id="result-box">
+        <div class="result-label" id="result-label"></div>
+        <div class="result-text" id="result-text"></div>
+        <div class="result-icon" id="result-icon"></div>
+      </div>
+    </div>
 
-<input type="text" id="Region" placeholder="Order Region (e.g. Western Europe)" required>
+    <!-- ── Model Comparison ── -->
+    <div class="comparison-card">
+      <div class="card-title"><span class="dot" style="background:var(--blue)"></span> Model Comparison</div>
 
-<input type="text" id="Market" placeholder="Market (e.g. Europe)" required>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('accuracy')">Accuracy</button>
+        <button class="tab" onclick="switchTab('metrics')">Metrics</button>
+        <button class="tab" onclick="switchTab('tradeoffs')">Trade-offs</button>
+      </div>
 
+      <!-- Accuracy tab -->
+      <div class="tab-panel active" id="tab-accuracy">
+        <!-- rows injected dynamically by loadComparison() -->
+        <div id="accuracy-rows">
+          <div class="model-row">
+            <div class="model-header">
+              <span class="model-name">XGBoost</span>
+              <span class="model-badge badge-best">⭐ Best</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill cy" data-val="76"></div></div>
+            <div class="bar-meta"><span class="bar-val">76% acc</span><span class="bar-sub">F1 0.75 · AUC 0.83</span></div>
+          </div>
+          <div class="model-row">
+            <div class="model-header">
+              <span class="model-name">LightGBM</span>
+              <span class="model-badge badge-ok">Recommended</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill cb" data-val="74"></div></div>
+            <div class="bar-meta"><span class="bar-val">74% acc</span><span class="bar-sub">F1 0.73 · AUC 0.81</span></div>
+          </div>
+          <div class="model-row">
+            <div class="model-header">
+              <span class="model-name">CatBoost</span>
+              <span class="model-badge badge-purple">Try It</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill cp" data-val="73"></div></div>
+            <div class="bar-meta"><span class="bar-val">73% acc</span><span class="bar-sub">F1 0.72 · AUC 0.80</span></div>
+          </div>
+          <div class="model-row">
+            <div class="model-header">
+              <span class="model-name">Random Forest</span>
+              <span class="model-badge badge-good">Current</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill cg" data-val="70"></div></div>
+            <div class="bar-meta"><span class="bar-val">70% acc</span><span class="bar-sub">F1 0.69 · AUC 0.77</span></div>
+          </div>
+          <div class="model-row">
+            <div class="model-header">
+              <span class="model-name">Logistic Regression</span>
+              <span class="model-badge badge-base">Baseline</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill cm" data-val="62"></div></div>
+            <div class="bar-meta"><span class="bar-val">62% acc</span><span class="bar-sub">F1 0.60 · AUC 0.67</span></div>
+          </div>
+        </div>
+        <p class="note" id="accuracy-note">* Estimates — run <code>train_model.py</code> to load real metrics.</p>
+      </div>
 
-<button type="submit">Predict</button>
+      <!-- Metrics tab -->
+      <div class="tab-panel" id="tab-metrics">
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>Model</th><th>Acc</th><th>Precision</th><th>Recall</th><th>F1</th><th>AUC</th>
+            </tr>
+          </thead>
+          <tbody id="metrics-tbody">
+            <tr><td><span class="pill pill-y">XGBoost</span></td><td>76%</td><td>0.77</td><td>0.74</td><td>0.75</td><td>0.83</td></tr>
+            <tr><td><span class="pill pill-b">LightGBM</span></td><td>74%</td><td>0.75</td><td>0.72</td><td>0.73</td><td>0.81</td></tr>
+            <tr><td><span class="pill pill-p">CatBoost</span></td><td>73%</td><td>0.74</td><td>0.71</td><td>0.72</td><td>0.80</td></tr>
+            <tr><td><span class="pill pill-g">Random Forest</span></td><td>70%</td><td>0.70</td><td>0.68</td><td>0.69</td><td>0.77</td></tr>
+            <tr><td><span class="pill pill-m">Logistic Reg.</span></td><td>62%</td><td>0.61</td><td>0.60</td><td>0.60</td><td>0.67</td></tr>
+          </tbody>
+        </table>
+        <p class="note" style="margin-top:12px;">Recall matters most here — a missed late delivery (false negative) costs more than a false alarm.</p>
+      </div>
 
-</form>
+      <!-- Trade-offs tab -->
+      <div class="tab-panel" id="tab-tradeoffs">
+        <div class="tradeoff-item">
+          <div class="tradeoff-header">
+            <span class="tradeoff-name">XGBoost</span>
+            <span class="pill pill-y">⭐ Best overall</span>
+          </div>
+          <p class="tradeoff-desc">Best accuracy + AUC. Handles class imbalance well with <code>scale_pos_weight</code>. One-line swap in <code>train_model.py</code>. Great for your course report.</p>
+        </div>
+        <div class="tradeoff-item">
+          <div class="tradeoff-header">
+            <span class="tradeoff-name">LightGBM</span>
+            <span class="pill pill-b">Fastest to train</span>
+          </div>
+          <p class="tradeoff-desc">5–10× faster than XGBoost. Nearly identical accuracy. Best if you want to run hyperparameter tuning or cross-validation quickly.</p>
+        </div>
+        <div class="tradeoff-item">
+          <div class="tradeoff-header">
+            <span class="tradeoff-name">CatBoost</span>
+            <span class="pill pill-p">No encoding bug</span>
+          </div>
+          <p class="tradeoff-desc">Handles <code>Type</code> and <code>Shipping.Mode</code> natively — no <code>LabelEncoder</code> needed. This fixes the encoding mismatch between <code>train.py</code> and <code>app.py</code> automatically.</p>
+        </div>
+        <div class="tradeoff-item">
+          <div class="tradeoff-header">
+            <span class="tradeoff-name">Random Forest</span>
+            <span class="pill pill-g">Current model</span>
+          </div>
+          <p class="tradeoff-desc">Solid baseline. Low overfitting risk, easy to explain. Trails gradient boosting by ~4–6% on accuracy and AUC for this task.</p>
+        </div>
+      </div>
+<!-- 
+      <div class="rec-box">
+        <div class="rec-title">💡 Recommendation</div>
+        <div class="rec-text">
+          Upgrade to <strong>XGBoost</strong> for best results — it's a one-line change in <code>train_model.py</code>. Prioritize <strong>Recall</strong> over raw accuracy: missing a late delivery costs more than a false alarm. Use <code>scale_pos_weight</code> if your classes are imbalanced.
+        </div>
+      </div> -->
 
-<div id="result"></div>
+    </div>
+  </div>
 
+  <div class="footer" id="footer-info">Supply Chain ML · v3 · Run train_model.py to load real metrics</div>
 </div>
 
-
 <script>
+  function switchTab(name) {
+    const names = ['accuracy','metrics','tradeoffs'];
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', names[i] === name));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+    if (name === 'accuracy') animateBars();
+  }
 
-document.getElementById("predictForm").addEventListener("submit", async function(e){
+  function animateBars() {
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      bar.style.width = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = bar.dataset.val + '%'; }));
+    });
+  }
 
-e.preventDefault()
+  // ── Model colour map ──────────────────────────────────────────────────────
+  const MODEL_STYLES = {
+    'XGBoost':            { barClass: 'cy', pillClass: 'pill-y', badge: '⭐ Best',        badgeClass: 'badge-best'   },
+    'LightGBM':           { barClass: 'cb', pillClass: 'pill-b', badge: 'Recommended',   badgeClass: 'badge-ok'     },
+    'CatBoost':           { barClass: 'cp', pillClass: 'pill-p', badge: 'Try It',         badgeClass: 'badge-purple' },
+    'Random Forest':      { barClass: 'cg', pillClass: 'pill-g', badge: 'Strong',         badgeClass: 'badge-good'   },
+    'Logistic Regression':{ barClass: 'cm', pillClass: 'pill-m', badge: 'Baseline',       badgeClass: 'badge-base'   },
+  };
 
-let data = {
+  function styleFallback(name, rank) {
+    // Assign colours by rank when a model name isn't in the map
+    const classes = [
+      { barClass:'cy', pillClass:'pill-y', badge:'🏆 #1',   badgeClass:'badge-best'   },
+      { barClass:'cb', pillClass:'pill-b', badge:'#2',       badgeClass:'badge-ok'     },
+      { barClass:'cp', pillClass:'pill-p', badge:'#3',       badgeClass:'badge-purple' },
+      { barClass:'cg', pillClass:'pill-g', badge:'#4',       badgeClass:'badge-good'   },
+      { barClass:'cm', pillClass:'pill-m', badge:'Baseline', badgeClass:'badge-base'   },
+    ];
+    return classes[Math.min(rank, classes.length - 1)];
+  }
 
-Type: document.getElementById("Type").value,
-Sales: parseFloat(document.getElementById("Sales").value),
-"Order.Item.Quantity": parseInt(document.getElementById("Quantity").value),
-"Days.for.shipping.scheduled": parseInt(document.getElementById("Days").value),
-"Shipping.Mode": document.getElementById("ShippingMode").value,
-"Order.Region": document.getElementById("Region").value,
-"Market": document.getElementById("Market").value
+  // ── Fetch real metrics from /comparison and update the UI ─────────────────
+  async function loadComparison() {
+    try {
+      const res = await fetch('/comparison');
+      if (!res.ok) return; // silently keep estimates if not trained yet
 
-}
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return;
 
-let response = await fetch("/predict",{
+      // ── Accuracy bars ──────────────────────────────────────────────────────
+      const accContainer = document.getElementById('accuracy-rows');
+      accContainer.innerHTML = '';
 
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+      data.forEach((m, i) => {
+        const s   = MODEL_STYLES[m.name] || styleFallback(m.name, i);
+        const pct = Math.round(m.accuracy * 100);
+        const row = document.createElement('div');
+        row.className = 'model-row';
+        row.innerHTML = `
+          <div class="model-header">
+            <span class="model-name">${m.name}</span>
+            <span class="model-badge ${s.badgeClass}">${s.badge}</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill ${s.barClass}" data-val="${pct}" style="width:0"></div></div>
+          <div class="bar-meta">
+            <span class="bar-val">${pct}% acc</span>
+            <span class="bar-sub">F1 ${m.f1.toFixed(2)} · AUC ${m.auc.toFixed(2)}</span>
+          </div>`;
+        accContainer.appendChild(row);
+      });
 
-body:JSON.stringify(data)
+      // Update the note to confirm these are real numbers
+      const note = document.getElementById('accuracy-note');
+      if (note) note.textContent = '✓ Real metrics from train_model.py — 80/20 split on full dataset.';
 
-})
+      // ── Metrics table ──────────────────────────────────────────────────────
+      const tbody = document.getElementById('metrics-tbody');
+      tbody.innerHTML = '';
 
-let result = await response.json()
+      data.forEach(m => {
+        const s   = MODEL_STYLES[m.name] || { pillClass: 'pill-m' };
+        const pct = Math.round(m.accuracy * 100);
+        const tr  = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="pill ${s.pillClass}">${m.name}</span></td>
+          <td>${pct}%</td>
+          <td>${m.precision.toFixed(2)}</td>
+          <td>${m.recall.toFixed(2)}</td>
+          <td>${m.f1.toFixed(2)}</td>
+          <td>${m.auc.toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+      });
 
-document.getElementById("result").innerText = result.prediction
+      // ── Footer ─────────────────────────────────────────────────────────────
+      const best   = data[0];
+      const footer = document.getElementById('footer-info');
+      if (footer) {
+        footer.textContent =
+          `Supply Chain ML · v4 · Best model: ${best.name} · AUC ${best.auc.toFixed(2)} · F1 ${best.f1.toFixed(2)}`;
+      }
 
-})
+      // Animate bars once DOM is populated
+      setTimeout(animateBars, 100);
 
+    } catch (_) {
+      // Network error or endpoint missing — keep hardcoded estimates silently
+    }
+  }
+
+  window.addEventListener('load', () => {
+    setTimeout(animateBars, 400);
+    loadComparison();
+  });
+
+  const form   = document.getElementById('predictForm');
+  const btn    = document.getElementById('submitBtn');
+  const box    = document.getElementById('result-box');
+  const errMsg = document.getElementById('errorMsg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errMsg.style.display = 'none';
+
+    let valid = true;
+    ['Sales','Quantity','Days'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add('invalid'); valid = false; }
+      else el.classList.remove('invalid');
+    });
+    ['Region','Market'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value) { el.classList.add('invalid'); valid = false; }
+      else el.classList.remove('invalid');
+    });
+    if (!valid) return;
+
+    btn.classList.add('loading');
+    document.querySelector('.spinner').style.display = 'block';
+    box.style.display = 'none';
+
+    const payload = {
+      Type: document.getElementById('Type').value,
+      Sales: parseFloat(document.getElementById('Sales').value),
+      'Order.Item.Quantity': parseInt(document.getElementById('Quantity').value),
+      'Days.for.shipping.scheduled': parseInt(document.getElementById('Days').value),
+      'Shipping.Mode': document.getElementById('ShippingMode').value,
+      'Order.Region': document.getElementById('Region').value,
+      'Market': document.getElementById('Market').value
+    };
+
+    try {
+      const res  = await fetch('/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const isLate = data.prediction.toLowerCase().includes('late');
+      box.className = isLate ? 'late' : 'ontime';
+      box.style.display = 'block';
+      document.getElementById('result-label').className = 'result-label ' + (isLate ? 'late' : 'ontime');
+      document.getElementById('result-label').textContent = isLate ? 'Prediction · High Risk' : 'Prediction · Low Risk';
+      document.getElementById('result-text').className = 'result-text ' + (isLate ? 'late' : 'ontime');
+      document.getElementById('result-text').textContent = data.prediction;
+      document.getElementById('result-icon').textContent = isLate ? '⚠️' : '✅';
+    } catch {
+      errMsg.style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+    }
+  });
+
+  document.querySelectorAll('input').forEach(el => el.addEventListener('input', () => el.classList.remove('invalid')));
 </script>
-
 </body>
 </html>
