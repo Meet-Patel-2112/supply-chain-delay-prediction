@@ -44,7 +44,7 @@ Order Region
 Market
 Scheduled Shipping Days
 
-Target variable:
+Target variable: 
 
 Late_delivery_risk
 0 → On-time delivery
